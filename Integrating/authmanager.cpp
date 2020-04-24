@@ -4,15 +4,18 @@
 #include <QUrl>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QDebug>
 
 AuthManager::AuthManager(QObject *parent) : QObject(parent)
 {
-
+    _isIndicatorRun = false;
 }
 
 void AuthManager::registering(const QString &login, const QString &passwod)
 {
-    QUrl url("http://127.0.0.1:59851/register");
+    _isIndicatorRun = true;
+
+    QUrl url("http://127.0.0.1:50443/register");
 
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader,
@@ -27,14 +30,21 @@ void AuthManager::registering(const QString &login, const QString &passwod)
 
     connect(reply, &QNetworkReply::finished,
             [this, reply] {
-                emit RegisterRequestCompleted(reply -> errorString());
+                if (reply -> errorString() == "Неизвестная ошибка")
+                    emit registerFinished();
+                else
+                    emit registerFailed(reply -> errorString());
                 reply -> deleteLater();
     });
+
+    _isIndicatorRun = false;
 }
 
 void AuthManager::authenticate(const QString &login, const QString &password)
 {
-    QUrl url("http://127.0.0.1:59851/auth");
+    _isIndicatorRun = true;
+
+    QUrl url("http://127.0.0.1:50443/auth");
 
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader,
@@ -50,7 +60,14 @@ void AuthManager::authenticate(const QString &login, const QString &password)
     connect(reply, &QNetworkReply::finished,
             [this, reply]{
                 QString token = QJsonDocument::fromJson(reply -> readAll()).object().value("token").toString();
-                emit AuthenticateRequestCompleted(reply -> errorString(), token);
+                emit authenticateRequestCompleted(reply -> errorString(), token);
                 reply -> deleteLater();
     });
+
+    _isIndicatorRun = false;
+}
+
+bool AuthManager::getindicatorRun()
+{
+    return _isIndicatorRun;
 }

@@ -1,11 +1,25 @@
 import QtQuick 2.0
 import QtQuick.Window 2.13
 import QtQuick.Controls 2.12
+import QtQuick.Dialogs 1.3
+import AuthManager 1.0
 
 Item {
     width: parent.width
     height: parent.height
     anchors.fill: parent
+
+    Authmanager {
+        id: authManager
+        onRegisterFinished: {
+            success.text = "Register completed successfully!"
+            success.open()
+        }
+        onRegisterFailed: {
+            success.text = "Register failed!\nError: " + error
+            success.open()
+         }
+    }
 
     Text {
         id: title
@@ -80,12 +94,12 @@ Item {
         onClicked: {
             busyIndicator.visible = true
             if (password.text !== repeatPassword.text)
-            {
                 wrongPassword.visible = true
-                busyIndicator.visible = false
-            }
             else
+            {
                 wrongPassword.visible = false
+                authManager.registering(login.text, password.text)
+            }
         }
     }
 
@@ -101,10 +115,16 @@ Item {
     }
 
     BusyIndicator {
-        id: busyIndicator
-        visible: false
+        id: busyIndicator        
+        running: authManager.getindicatorRun()
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: buttonSignUp.bottom
         anchors.topMargin: 10
+    }
+
+    MessageDialog{
+        id: success
+        title: qsTr("Result")
+        standardButtons: Dialog.Ok
     }
 }

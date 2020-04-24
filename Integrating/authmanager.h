@@ -11,16 +11,20 @@ class AuthManager : public QObject
 public:
     explicit AuthManager(QObject *parent = nullptr);
 
-    void registering (const QString &login,
+    Q_INVOKABLE void registering (const QString &login,
                       const QString &passwod);
-    void authenticate(const QString &login,
+    Q_INVOKABLE void authenticate(const QString &login,
                       const QString &password);
+
+    Q_INVOKABLE bool getindicatorRun();
 
 private:
     QNetworkAccessManager _net;
+    bool _isIndicatorRun;
 
 signals:
-    void RegisterRequestCompleted(QString);
-    void AuthenticateRequestCompleted(QString, QString);
+    void registerFinished();
+    void registerFailed(QString error);
+    void authenticateRequestCompleted(QString error, QString token);
 };
 #endif // AUTHMANAGER_H
