@@ -1,11 +1,24 @@
 import QtQuick 2.0
 import QtQuick.Window 2.13
 import QtQuick.Controls 2.12
+import QtQuick.Dialogs 1.3
+import AuthManager 1.0
 
 Item {
     width: parent.width
     height: parent.height
     anchors.fill: parent
+
+    Authmanager {
+        id: authManager
+        onAuthenticateRequestCompleted: {
+            if (token != "")
+                success.text = "Authenticate completed successfully!"
+            else
+                success.text = "Authenticate failed!\nError: " + error
+            success.open()
+        }
+    }
 
     Text {
         id: title
@@ -48,14 +61,20 @@ Item {
         anchors.topMargin: 5
         font.pixelSize: 15
         enabled: login.length > 5 && password.length > 5
-        onClicked: busyIndicator.visible = true
+        onClicked: authManager.authenticate(login.text, password.text)
     }
 
     BusyIndicator {
         id: busyIndicator
-        visible: false
+        running: authManager.getindicatorRun()
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: buttonSignIn.bottom
         anchors.topMargin: 10
+    }
+
+    MessageDialog{
+        id: success
+        title: qsTr("Result")
+        standardButtons: Dialog.Ok
     }
 }
